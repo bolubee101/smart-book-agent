@@ -54,6 +54,9 @@ This spins up:
 
 ## Architecture and Approach
 
+### System diagram
+![system diagram png](https://github.com/user-attachments/assets/37081662-f313-4129-87fc-7d2f72ccdef9)
+
 ### System Flow
 
 1. `POST /api/scrape` accepts a `theme` and returns a `jobId`
