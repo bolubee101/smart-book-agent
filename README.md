@@ -9,7 +9,9 @@ Smart Book Discovery Agent is a TypeScript-based automation tool that scrapes bo
 - Calculates:
   - Discount amount and percentage
   - Value score (relevance score / current price)
-- Provides a RESTful API with job-based processing
+- Uses a Redis-backed job queue (via BullMQ) to process scraping tasks
+- Limits scraping concurrency to 10 (configurable in Redis)
+- Provides a RESTful API for job submission and retrieval
 - Sends results to Make.com using a webhook
 
 ---
@@ -22,46 +24,48 @@ git clone https://github.com/your-username/smart-book-agent.git
 cd smart-book-agent
 ```
 
-### 2. Install dependencies
-```bash
-yarn
-```
-
-### 3. Create a `.env` file
+### 2. Set up the environment file
 ```env
 PORT=3000
 LLM_PROVIDER=openai
 OPENAI_API_KEY=your_openai_key
 MAKE_WEBHOOK_URL=https://hook.make.com/your-webhook-url
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
-### 4. Run the app locally
+> Optional Redis setting (for controlling concurrency):
 ```bash
-yarn dev          # Development mode
-yarn build && yarn start    # Production build
+redis-cli set settings:scrape_queue_concurrency 10
 ```
 
-### 5. Run with Docker (Optional)
+### 3. Start everything using Docker Compose
+
 ```bash
-docker build -t smart-book-agent .
-docker run -p 3000:3000 --env-file .env smart-book-agent
+docker compose up --build
 ```
 
----
+This spins up:
+- `smart-book-agent` (Node.js + TypeScript backend with Playwright)
+- `redis` (as job tracker and queue backend)
+
+> Note: The Dockerfile automatically installs Playwright and required browser dependencies using `npx playwright install --with-deps`.
+
 
 ## Architecture and Approach
 
-1. The API exposes three endpoints:
-   - `POST /api/scrape` — Accepts a theme, starts a scraping + enrichment job
-   - `GET /api/status/:jobId` — Returns the status of a job
-   - `GET /api/results/:jobId` — Returns the results of a completed job
-2. Scraping is handled by Playwright to fetch books from BookDP.
-3. AI enrichment is performed using OpenAI or DeepSeek to generate a summary and relevance score.
-4. The application calculates additional metrics like discount and value score.
-5. Job results are stored in an in-memory `Map` and returned via polling.
-6. Once complete, the results are POSTed to a Make.com webhook if configured.
+### System Flow
 
----
+1. `POST /api/scrape` accepts a `theme` and returns a `jobId`
+2. The job is queued using BullMQ (backed by Redis)
+3. A pool of up to 20 workers (configurable) scrape BookDP results
+4. Each book is enriched using OpenAI or DeepSeek
+5. Discount and value metrics are calculated
+6. Final result is stored in Redis and sent to Make.com (if configured)
+7. Client polls:
+   - `GET /api/status/:jobId` for current status
+   - `GET /api/results/:jobId` for final results
+
 
 ## Make.com Integration
 
@@ -112,13 +116,11 @@ MAKE_WEBHOOK_URL=https://hook.make.com/your-webhook-url
 
 5. Activate your scenario and call the scrape API — results will be delivered automatically on completion.
 
----
-
 ## Assumptions and Limitations
 
 - Only the first two pages of BookDP results are scraped
-- Book author information is not available on the BookDP website, so as part of the AI enhancements, the author is inferred from the description.
-- AI-generated data assumes the LLM returns clean JSON (errors may be caught and defaulted)
-- Job tracking is done in memory using a `Map` — not persistent across server restarts
-- Integration assumes webhook and downstream automation are properly configured
-- The spreadsheet has already been created, with the appropriate columns specified.
+- Book author information is not available directly; inferred via AI
+- AI-generated JSON must be clean and parseable (handled defensively)
+- Redis is used for job tracking; durable across restarts
+- Concurrency is configurable via Redis key `settings:scrape_queue_concurrency`
+- The spreadsheet must already exist with the expected structure
