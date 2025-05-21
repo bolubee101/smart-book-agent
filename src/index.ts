@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
+import scrapeRoutes from './api/scrapeRoutes';
 import { responseHelper } from './utils/responseHelper';
 
 dotenv.config();
@@ -8,6 +9,8 @@ const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json());
+
+app.use('/api', scrapeRoutes);
 
 app.get('/', (_req: Request, res: Response): any => {
   return responseHelper({
@@ -19,5 +22,5 @@ app.get('/', (_req: Request, res: Response): any => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
