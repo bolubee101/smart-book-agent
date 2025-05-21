@@ -2,12 +2,14 @@ import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import scrapeRoutes from './api/scrapeRoutes';
 import { responseHelper } from './utils/responseHelper';
+import { logUrl } from './middleware/logUrl';
 
 dotenv.config();
 
 const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || '3000', 10);
 
+app.use(logUrl)
 app.use(express.json());
 
 app.use('/api', scrapeRoutes);
