@@ -1,11 +1,8 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { scrapeBooks } from '../scraper/bookScraper';
-import { enrichBook } from '../llm/enrichmentHelper';
-import { computeBookMetrics } from '../utils/bookCalculations';
-import { createJob, updateJob, getJob, hasJob } from '../store/jobStore';
+import { scrapeQueue } from '../configs/queue';
 import { responseHelper } from '../utils/responseHelper';
-import { sendToMakeWebhook } from '../services/webHookSender';
+import { createJob, getJob, hasJob } from '../store/jobStore';
 
 export const handleScrapeRequest = async (req: Request, res: Response): Promise<any> => {
     const { theme } = req.body;
@@ -15,26 +12,9 @@ export const handleScrapeRequest = async (req: Request, res: Response): Promise<
     }
 
     const jobId = uuidv4();
-    createJob(jobId);
 
-    (async () => {
-        try {
-            const books = await scrapeBooks(theme);
-            const enrichedBooks = [];
-
-            for (const book of books) {
-                const enriched = await enrichBook(book.title, book.description, theme);
-                const combined = computeBookMetrics({ ...book, ...enriched });
-                enrichedBooks.push(combined);
-            }
-            updateJob(jobId, { status: 'completed', result: enrichedBooks })
-            await sendToMakeWebhook({
-                books: enrichedBooks
-            });
-        } catch (error) {
-            updateJob(jobId, { status: 'failed', error: (error as Error).message });
-        }
-    })();
+    await createJob(jobId);
+    await scrapeQueue.add('scrape', { theme, jobId });
 
     return responseHelper({ res, status: 'success', code: 202, data: { jobId } });
 };
@@ -42,29 +22,29 @@ export const handleScrapeRequest = async (req: Request, res: Response): Promise<
 export const handleStatusCheck = async (req: Request, res: Response): Promise<any> => {
     const { jobId } = req.params;
 
-    if (!hasJob(jobId)) {
+    if (!(await hasJob(jobId))) {
         return responseHelper({ res, status: 'fail', code: 404, data: { message: 'Job not found' } });
     }
 
-    const job = getJob(jobId);
+    const job = await getJob(jobId);
     return responseHelper({ res, status: 'success', code: 200, data: { status: job?.status } });
 };
 
 export const handleResultsFetch = async (req: Request, res: Response): Promise<any> => {
     const { jobId } = req.params;
 
-    if (!hasJob(jobId)) {
+    if (!(await hasJob(jobId))) {
         return responseHelper({ res, status: 'fail', code: 404, data: { message: 'Job not found' } });
     }
 
-    const job = getJob(jobId);
+    const job = await getJob(jobId);
 
-    if (job && job?.status !== 'completed') {
+    if (!job || job.status !== 'completed') {
         return responseHelper({
             res,
             status: 'fail',
             code: 400,
-            data: { message: `Job is ${job.status}` }
+            data: { message: `Job is ${job?.status}` }
         });
     }
 
@@ -72,6 +52,6 @@ export const handleResultsFetch = async (req: Request, res: Response): Promise<a
         res,
         status: 'success',
         code: 200,
-        data: job?.result
+        data: job.result
     });
 };

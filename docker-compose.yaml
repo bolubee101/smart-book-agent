@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    container_name: smart-book-agent
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+    environment:
+      - PORT=3000
+      - LLM_PROVIDER=openai
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MAKE_WEBHOOK_URL=${MAKE_WEBHOOK_URL}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  redis:
+    image: redis:7-alpine
+    container_name: smart-book-redis
+    ports:
+      - "6379:6379"

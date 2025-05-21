@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import scrapeRoutes from './api/scrapeRoutes';
 import { responseHelper } from './utils/responseHelper';
 import { logUrl } from './middleware/logUrl';
+import { initializeScrapeWorker } from './configs/queue';
 
 dotenv.config();
 
@@ -26,3 +27,7 @@ app.get('/', (_req: Request, res: Response): any => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
+(async () => {
+  await initializeScrapeWorker();
+})();

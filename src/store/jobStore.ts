@@ -1,28 +1,46 @@
-type JobStatus = 'processing' | 'completed' | 'failed';
+import { redisConnection } from '../configs/redis';
 
-interface JobData {
+export type JobStatus = 'processing' | 'completed' | 'failed';
+
+export interface JobData {
     status: JobStatus;
     result?: any;
     error?: string;
 }
 
-const jobStore = new Map<string, JobData>();
+const getJobKey = (jobId: string, field: 'status' | 'result' | 'error') => `job:${jobId}:${field}`;
 
-export const createJob = (jobId: string) => {
-    jobStore.set(jobId, { status: 'processing' });
+export const createJob = async (jobId: string) => {
+    await redisConnection.set(getJobKey(jobId, 'status'), 'processing');
 };
 
-export const updateJob = (jobId: string, data: Partial<JobData>) => {
-    const current = jobStore.get(jobId);
-    if (current) {
-        jobStore.set(jobId, { ...current, ...data });
+export const updateJob = async (jobId: string, data: Partial<JobData>) => {
+    if (data.status) {
+        await redisConnection.set(getJobKey(jobId, 'status'), data.status);
+    }
+    if (data.result) {
+        await redisConnection.set(getJobKey(jobId, 'result'), JSON.stringify(data.result));
+    }
+    if (data.error) {
+        await redisConnection.set(getJobKey(jobId, 'error'), data.error);
     }
 };
 
-export const getJob = (jobId: string): JobData | undefined => {
-    return jobStore.get(jobId);
+export const hasJob = async (jobId: string): Promise<boolean> => {
+    const status = await redisConnection.get(getJobKey(jobId, 'status'));
+    return !!status;
 };
 
-export const hasJob = (jobId: string): boolean => {
-    return jobStore.has(jobId);
+export const getJob = async (jobId: string): Promise<JobData | undefined> => {
+    const status = await redisConnection.get(getJobKey(jobId, 'status'));
+    if (!status) return undefined;
+
+    const resultRaw = await redisConnection.get(getJobKey(jobId, 'result'));
+    const error = await redisConnection.get(getJobKey(jobId, 'error'));
+
+    return {
+        status: status as JobStatus,
+        result: resultRaw ? JSON.parse(resultRaw) : undefined,
+        error: error || undefined
+    };
 };
