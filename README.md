@@ -62,15 +62,18 @@ This spins up:
 
 ### System Flow
 
-1. `POST /api/scrape` accepts a `theme` and returns a `jobId`
+#### baseurl
+`localhost:3000/api`
+
+1. `POST /scrape` accepts a `theme` and returns a `jobId`
 2. The job is queued using BullMQ (backed by Redis)
 3. A pool of up to 20 workers (configurable) scrape BookDP results
 4. Each book is enriched using OpenAI or DeepSeek
 5. Discount and value metrics are calculated
 6. Final result is stored in Redis and sent to Make.com (if configured)
 7. Client polls:
-   - `GET /api/status/:jobId` for current status
-   - `GET /api/results/:jobId` for final results
+   - `GET /status/:jobId` for current status
+   - `GET /results/:jobId` for final results
 
 
 ## Make.com Integration
