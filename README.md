@@ -16,6 +16,9 @@ Smart Book Discovery Agent is a TypeScript-based automation tool that scrapes bo
 
 ---
 
+## Documentation
+[Postman Documentation](https://documenter.getpostman.com/view/45145690/2sB2qZFNbX)
+
 ## Instructions for Running the Project Locally
 
 ### 1. Clone the repository
