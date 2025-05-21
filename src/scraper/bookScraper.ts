@@ -64,11 +64,9 @@ const scrapeProductPage = async (page: Page, url: string): Promise<Book | null> 
         const current_price = parseFloat(currentPriceStr);
         const original_price = originalPriceStr ? parseFloat(originalPriceStr) : undefined;
 
-        const author = 'Unknown';
 
         return {
             title,
-            author,
             current_price,
             original_price,
             description,

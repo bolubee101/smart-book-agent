@@ -1,6 +1,6 @@
 export interface Book {
   title: string;
-  author: string;
+  author?: string;
   current_price: number;
   original_price?: number;
   description: string;
