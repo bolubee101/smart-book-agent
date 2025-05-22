@@ -133,3 +133,33 @@ MAKE_WEBHOOK_URL=https://hook.make.com/your-webhook-url
 - Redis is used for job tracking; durable across restarts
 - Concurrency is configurable via Redis key `settings:scrape_queue_concurrency`
 - The spreadsheet must already exist with the expected structure
+
+### Screenshots
+- Scrapped data
+![Scraped data1](https://github.com/user-attachments/assets/60700582-d43e-452d-893e-8f0bec482887)
+![Scraped data2](https://github.com/user-attachments/assets/df5a5f4a-406e-4e1a-b8c5-d580a6bb90af)
+
+- AI summary and score
+![AI summary and score](https://github.com/user-attachments/assets/656e326b-2df0-4493-ad12-daa4cd835a69)
+
+- Make config
+![Make config1](https://github.com/user-attachments/assets/71da6734-97bc-4aed-9532-54e803a312cb)
+
+- Make Webhook config
+![Webhook config](https://github.com/user-attachments/assets/fbfe5804-6085-4254-bc5e-b2052fe5b3ef)
+![Webhook data structure](https://github.com/user-attachments/assets/b86a8764-1766-4a7d-9ae8-2cde43da7b89)
+
+- Make Google sheet config
+![Google sheet config](https://github.com/user-attachments/assets/6b419ae1-3306-4c93-ba1f-20fe715ac7c0)
+
+- Google sheet result
+<img width="791" alt="Google sheet webhook result" src="https://github.com/user-attachments/assets/22c0a3de-d2ba-4a8f-85c3-087cc837710a" />
+
+
+
+
+
+
+
+
+
