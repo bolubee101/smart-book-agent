@@ -1,10 +1,6 @@
 import { Router } from 'express';
-import {
-    handleScrapeRequest,
-    handleStatusCheck,
-    handleResultsFetch
-} from '../controllers/scrapeController';
 import { scrapeRateLimiter } from '../middleware/rateLimiter';
+import { handleResultsFetch, handleScrapeRequest, handleStatusCheck } from '../modules/book/book.controller';
 
 const router = Router();
 

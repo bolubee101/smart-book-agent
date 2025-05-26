@@ -1,7 +1,7 @@
 import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import scrapeRoutes from './api/scrapeRoutes';
-import { responseHelper } from './utils/responseHelper';
+import { responseHelper } from './utils/helpers';
 import { logUrl } from './middleware/logUrl';
 import { initializeScrapeWorker } from './configs/queue';
 

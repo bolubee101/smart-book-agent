@@ -1,4 +1,4 @@
-import { redisConnection } from '../configs/redis';
+import { redisConnection } from '../../configs/redis';
 
 export type JobStatus = 'processing' | 'completed' | 'failed';
 

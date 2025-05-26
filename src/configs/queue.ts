@@ -1,13 +1,18 @@
 import { Queue, Worker } from 'bullmq';
 import { redisConnection } from './redis';
-import { scrapeAndEnrich } from '../jobs/scrapper';
-import { getQueueConcurrency } from '../utils/getConcurrency';
+import { scrapeAndEnrich } from '../modules/book/book.scraper';
 
 export const scrapeQueue = new Queue('scrape-queue', {
     connection: redisConnection
 });
 
 export let scrapeWorker: Worker;
+
+export const getQueueConcurrency = async (key = 'settings:scrape_queue_concurrency'): Promise<number> => {
+    const value = await redisConnection.get(key);
+    const parsed = parseInt(value || '5', 10);
+    return isNaN(parsed) ? 5 : parsed;
+};
 
 export const initializeScrapeWorker = async () => {
     const concurrency = await getQueueConcurrency();

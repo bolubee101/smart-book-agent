@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { scrapeQueue } from '../configs/queue';
-import { responseHelper } from '../utils/responseHelper';
-import { createJob, getJob, hasJob } from '../store/jobStore';
+import { responseHelper } from '../../utils/helpers';
+import { createJob, getJob, hasJob } from './book.job.store';
+import { scrapeQueue } from '../../configs/queue';
 
 export const handleScrapeRequest = async (req: Request, res: Response): Promise<any> => {
     const { theme } = req.body;
